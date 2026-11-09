@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { X, Camera, RotateCw, Check, AlertCircle } from 'lucide-react'
 
 export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
@@ -9,23 +9,21 @@ export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
     const [error, setError] = useState('')
     const [capturedImage, setCapturedImage] = useState(null)
 
-    useEffect(() => {
-        startCamera()
-        return () => {
-            stopCamera()
+    const stopCamera = useCallback(() => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop())
+            setStream(null)
         }
-    }, [facingMode])
+    }, [stream])
 
-    const startCamera = async () => {
+    const startCamera = useCallback(async () => {
         try {
             setError('')
 
-            // Stop existing stream
             if (stream) {
                 stream.getTracks().forEach(track => track.stop())
             }
 
-            // Request camera access
             const mediaStream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: facingMode,
@@ -42,16 +40,50 @@ export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
             }
         } catch (err) {
             console.error('Camera error:', err)
-            setError(t.cameraError || 'Camera access denied')
+            setError(t?.cameraError || 'Camera access denied or unavailable')
         }
-    }
+    }, [facingMode, stream, t])
 
-    const stopCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop())
-            setStream(null)
+    useEffect(() => {
+        let activeStream = null
+        let isCancelled = false
+
+        const initCamera = async () => {
+            try {
+                const mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: facingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                })
+                if (isCancelled) {
+                    mediaStream.getTracks().forEach(track => track.stop())
+                    return
+                }
+                activeStream = mediaStream
+                setStream(mediaStream)
+                if (videoRef.current) {
+                    videoRef.current.srcObject = mediaStream
+                }
+            } catch (err) {
+                if (!isCancelled) {
+                    console.error('Camera error:', err)
+                    setError(t?.cameraError || 'Camera access denied or unavailable')
+                }
+            }
         }
-    }
+
+        initCamera()
+
+        return () => {
+            isCancelled = true
+            if (activeStream) {
+                activeStream.getTracks().forEach(track => track.stop())
+            }
+        }
+    }, [facingMode, t])
 
     const capturePhoto = () => {
         if (!videoRef.current || !canvasRef.current) return
@@ -87,7 +119,7 @@ export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
 
         canvasRef.current.toBlob((blob) => {
             if (blob) {
-                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' })
+                const file = new File([blob], 'leaf-camera-capture.jpg', { type: 'image/jpeg' })
                 onCapture(file, capturedImage)
                 stopCamera()
                 onClose()
@@ -109,10 +141,11 @@ export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
                         onClose()
                     }}
                     className="text-white text-2xl p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                    aria-label="Close camera"
                 >
                     <X size={24} />
                 </button>
-                <h2 className="text-white font-semibold">{t.takePhoto}</h2>
+                <h2 className="text-white font-semibold">{t?.takePhoto || "Take Photo"}</h2>
                 <div className="w-10"></div>
             </div>
 
@@ -160,13 +193,13 @@ export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
                             onClick={retake}
                             className="flex-1 max-w-xs bg-gray-600 hover:bg-gray-700 text-white py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
                         >
-                            <RotateCw size={20} /> {t.retakePhoto}
+                            <RotateCw size={20} /> {t?.retakePhoto || "Retake Photo"}
                         </button>
                         <button
                             onClick={usePhoto}
                             className="flex-1 max-w-xs bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
                         >
-                            <Check size={20} /> {t.usePhoto}
+                            <Check size={20} /> {t?.usePhoto || "Use Photo"}
                         </button>
                     </div>
                 ) : (
@@ -175,7 +208,7 @@ export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
                             <button
                                 onClick={switchCamera}
                                 className="bg-gray-700 hover:bg-gray-600 text-white p-4 rounded-full transition-colors"
-                                title={t.switchCamera}
+                                title={t?.switchCamera || "Switch Camera"}
                             >
                                 <RotateCw size={24} />
                             </button>
@@ -184,6 +217,7 @@ export default function CameraCapture({ onCapture, onClose, darkMode, t }) {
                                 onClick={capturePhoto}
                                 disabled={!stream}
                                 className="w-20 h-20 bg-white hover:bg-gray-200 rounded-full border-4 border-gray-300 transition-all disabled:opacity-50 flex items-center justify-center"
+                                aria-label="Capture photograph"
                             >
                                 <Camera size={32} className="text-gray-700" />
                             </button>

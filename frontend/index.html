@@ -4,45 +4,94 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-  <meta name="description"
-    content="AgriScan AI - Advanced Multi-Disease Plant Detection System powered by ensemble deep learning models" />
 
-  <!-- PWA Meta Tags -->
-  <meta name="theme-color" content="#10b981" />
+  <!-- Primary SEO Metadata -->
+  <title>LeafSense – AI Plant Disease Detection &amp; Smart Farming Assistant</title>
+  <meta name="title" content="LeafSense – AI Plant Disease Detection &amp; Smart Farming Assistant" />
+  <meta name="description"
+    content="LeafSense is an AI-powered agricultural platform that helps farmers identify plant diseases using deep learning and receive evidence-informed farming guidance through IBM Granite 4 and an agriculture knowledge base." />
+  <meta name="keywords"
+    content="plant disease detection, agricultural AI, smart farming, leaf disease diagnosis, Grad-CAM explainable AI, IBM Granite, agriculture RAG, crop health, precision farming, plant pathology" />
+  <meta name="author" content="LeafSense Contributors" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+  <!-- Canonical URL Placeholder (Update with verified production domain when deployed) -->
+  <!-- Example: https://leafsense.example.com -->
+  <link rel="canonical" href="https://leafsense.example.com" />
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://leafsense.example.com" />
+  <meta property="og:site_name" content="LeafSense" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="LeafSense – AI Plant Disease Detection &amp; Smart Farming Assistant" />
+  <meta property="og:description"
+    content="Identify crop diseases across 17 classes with deep learning ensembles, visual Grad-CAM localization, and intelligent advisory powered by IBM Granite 4." />
+  <meta property="og:image" content="https://leafsense.example.com/favicon.svg" />
+  <meta property="og:image:alt" content="LeafSense - AI Agricultural Intelligence Platform" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://leafsense.example.com" />
+  <meta name="twitter:title" content="LeafSense – AI Plant Disease Detection &amp; Smart Farming Assistant" />
+  <meta name="twitter:description"
+    content="AI-powered plant disease detection with explainable Grad-CAM heatmaps and interactive farming consultation using IBM Granite 4." />
+  <meta name="twitter:image" content="https://leafsense.example.com/favicon.svg" />
+
+  <!-- Theme & Mobile Application Capabilities -->
+  <meta name="theme-color" content="#059669" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="AgriScan AI" />
+  <meta name="apple-mobile-web-app-title" content="LeafSense" />
   <link rel="manifest" href="/manifest.json" />
 
-  <!-- Apple Touch Icons -->
-  <link rel="apple-touch-icon" href="/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
-
-  <title>AgriScan AI - Plant Disease Detection</title>
+  <!-- Structured Data (JSON-LD) for Search Engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://leafsense.example.com/#website",
+        "url": "https://leafsense.example.com",
+        "name": "LeafSense",
+        "description": "AI-Powered Plant Disease Detection & Smart Farming Assistant",
+        "inLanguage": ["en", "hi"]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://leafsense.example.com/#software",
+        "name": "LeafSense",
+        "applicationCategory": "AgricultureApplication",
+        "operatingSystem": "Web (Modern Browsers)",
+        "description": "LeafSense is an open-source agricultural platform that assists farmers with multi-disease plant diagnosis using deep learning ensembles and conversational guidance with IBM Granite 4 and Agriculture RAG.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "17-class plant disease detection across Apple, Corn, Grape, Potato, and Tomato",
+          "Four-model deep learning ensemble (ResNet50, DenseNet121, GhostNetV2, AgriFusionNet)",
+          "Multi-disease Grad-CAM visual heatmaps",
+          "Pre-flight image quality and blur validation",
+          "Interactive Smart Farming Assistant powered by IBM Granite 4",
+          "Retrieval-Augmented Generation (RAG) knowledge base with ChromaDB",
+          "Multilingual advisory support across 11 Indian languages"
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
-
-  <!-- Register Service Worker - DISABLED -->
-  <!--
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('SW registered:', registration)
-          })
-          .catch((error) => {
-            console.log('SW registration failed:', error)
-          })
-      })
-    }
-  </script>
-  -->
 </body>
 
 </html>

@@ -1,225 +1,139 @@
-# How to Start the AgriScan AI Application
+# 🚀 Starting the LeafSense Application
 
-## Issue Fixed ✅
-- **Problem**: `app.py` was importing `generate_gradcam_for_image` which no longer exists
-- **Solution**: Removed the unused import. The code already uses the correct `generate_multi_disease_visualization` function
+This guide explains how to start both the **LeafSense FastAPI Backend** and the **LeafSense React Frontend** in your development environment.
 
 ---
 
-## Start Backend (Terminal 1)
+## Prerequisites
 
+- **Python**: 3.10+ installed
+- **Node.js**: v18+ and `npm` installed
+- Open **two terminal tabs/windows**:
+  - Terminal 1: Backend service (FastAPI)
+  - Terminal 2: Frontend client (Vite + React)
+
+---
+
+## 1. Start Backend (Terminal 1)
+
+### Linux / macOS
+```bash
+# Navigate to the backend directory
+cd backend
+
+# Create virtual environment if not already created
+python3 -m venv .venv
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the server with hot-reload enabled
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Windows (PowerShell)
 ```powershell
-cd C:\Users\Asus\Downloads\slmdd\backend
-.venv\Scripts\Activate
-uvicorn app:app --reload
+# Navigate to the backend directory
+cd backend
+
+# Create virtual environment if not already created
+python -m venv .venv
+
+# Activate virtual environment
+.venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the server with hot-reload enabled
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**Expected Output:**
+**Expected Startup Output:**
 ```
-INFO:     Will watch for changes in these directories: ['C:\\Users\\Asus\\Downloads\\slmdd\\backend']
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [xxxxx] using WatchFiles
-INFO:     Started server process [xxxxx]
+INFO:     Will watch for changes in directories: ['.../backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process
+INFO:     Started server process
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ```
 
-Backend will be available at: **http://127.0.0.1:8000**
+- **API Base URL**: `http://127.0.0.1:8000`
+- **Health Check**: `http://127.0.0.1:8000/health`
+- **Interactive API Documentation (Swagger UI)**: `http://127.0.0.1:8000/docs`
 
 ---
 
-## Start Frontend (Terminal 2)
+## 2. Start Frontend (Terminal 2)
 
-```powershell
-cd C:\Users\Asus\Downloads\slmdd\frontend
-npm run preview
+### Linux / macOS / Windows
+```bash
+# Navigate to the frontend directory
+cd frontend
+
+# Install dependencies (only needed once)
+npm install
+
+# Start development server
+npm run dev
 ```
 
-**Expected Output:**
+**Expected Startup Output:**
 ```
-> frontend@0.0.0 preview
-> vite preview
+  VITE v8.x.x  ready in 250 ms
 
-  ➜  Local:   http://localhost:4173/
+  ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
   ➜  press h + enter to show help
 ```
 
-Frontend will be available at: **http://localhost:4173**
+- **Frontend Application URL**: `http://localhost:5173`
+
+> [!TIP]
+> If you wish to test a production build locally, run:
+> ```bash
+> npm run build
+> npm run preview
+> ```
+> This serves the optimized build at `http://localhost:4173`.
 
 ---
 
-## Test the Application
+## 3. Verify End-to-End Application Flow
 
-1. Open browser: `http://localhost:4173`
-2. Upload a plant leaf image with disease
-3. Click "Predict Diseases"
-4. View the predictions with confidence scores
-5. Scroll down to see **Disease Localization** section
-6. Toggle between "Show Combined" and "Show Individual" views
-7. Test multiple languages (11 supported)
-
----
-
-## Multi-Disease Localization Features
-
-### What You'll See:
-- **Individual View**: Each detected disease shown separately with unique colors:
-  - Disease #1 → Red overlay
-  - Disease #2 → Yellow overlay
-  - Disease #3 → Blue overlay
-  - Disease #4 → Green overlay
-  - And so on...
-
-- **Combined View**: All diseases merged into one visualization with color legend
-
-### Supported Languages:
-1. English (en)
-2. हिंदी - Hindi (hi)
-3. বাংলা - Bengali (bn)
-4. தமிழ் - Tamil (ta)
-5. తెలుగు - Telugu (te)
-6. मराठी - Marathi (mr)
-7. ગુજરાતી - Gujarati (gu)
-8. ਪੰਜਾਬੀ - Punjabi (pa)
-9. മലയാളം - Malayalam (ml)
-10. ಕನ್ನಡ - Kannada (kn)
-11. ଓଡ଼ିଆ - Odia (or)
+1. Open your browser and navigate to `http://localhost:5173`.
+2. Select your preferred user interface language (English or one of 10 Indian regional languages).
+3. Upload a leaf image from your device or use the built-in camera capture.
+4. LeafSense will first run an automated **Image Quality Check** (evaluating sharpness, lighting, and resolution).
+5. Click **"Predict Diseases"**.
+6. The dashboard displays:
+   - **Disease Predictions**: Detection results sorted with confidence percentages and severity levels.
+   - **Explainable AI (Grad-CAM)**: Switch seamlessly between **Combined View** (all affected regions highlighted) and **Individual View** (card-by-card breakdown with color borders).
+   - **Multilingual Advisory**: Step-by-step Cause, Symptoms, Treatment, and Prevention advice with dynamic language switching.
+7. Click **"Download Report"** to export an image of your diagnostic findings.
 
 ---
 
-## Troubleshooting
+## 4. Troubleshooting
 
-### Backend Issues:
+### Port Conflicts
+If port 8000 or 5173 is already in use:
+- **Backend on alternative port**:
+  ```bash
+  uvicorn app:app --reload --port 8080
+  ```
+- Make sure to update `frontend/.env` with `VITE_API_URL=http://127.0.0.1:8080`.
 
-**ImportError: cannot import name 'xxx'**
-- ✅ **FIXED**: Removed old import from app.py
-
-**ModuleNotFoundError: No module named 'timm'**
-- Solution: `pip install -r requirements.txt`
-
-**CUDA out of memory**
-- The code automatically falls back to CPU if CUDA is not available
-
-### Frontend Issues:
-
-**Port 4173 already in use**
-- Kill the existing process or use: `npm run preview -- --port 4174`
-
-**Blank page or missing styles**
-- Clear browser cache (Ctrl+Shift+R)
-- Rebuild: `npm run build`
-
-**CORS errors**
-- Ensure backend is running on http://127.0.0.1:8000
-- Check browser console for exact error
-
----
-
-## API Endpoints
-
-### 1. Health Check
-```
-GET http://127.0.0.1:8000/
-Response: {"message": "Plant Disease Ensemble API Running"}
-```
-
-### 2. Image Quality Check
-```
-POST http://127.0.0.1:8000/check-quality
-Body: multipart/form-data with 'file'
-Response: Quality metrics and suggestions
-```
-
-### 3. Disease Prediction
-```
-POST http://127.0.0.1:8000/predict
-Body: 
-  - file: multipart/form-data
-  - language: form field (default: "en")
-Response: 
-  - predictions
-  - detected_diseases
-  - visualizations (array of colored overlays)
-  - combined_visualization
-  - advice
-```
-
-### 4. Translate Advice
-```
-POST http://127.0.0.1:8000/translate-advice
-Body: {"diseases": [...], "target_language": "hi"}
-Response: Translated advice
-```
-
----
-
-## Architecture
-
-### Models Used:
-1. **ResNet50** (22% weight)
-2. **DenseNet121** (30% weight) ← Used for Grad-CAM
-3. **GhostNetV2** (28% weight)
-4. **AgriFusionNet** (20% weight)
-
-### Grad-CAM Settings:
-- **Model**: DenseNet121 (highest single model accuracy)
-- **Target Layer**: `norm5` (best for disease localization)
-- **Threshold**: 0.7 (shows top 30% activations)
-- **Alpha**: 0.7 (overlay transparency)
-
----
-
-## Project Structure
-
-```
-slmdd/
-├── backend/
-│   ├── app.py                  # FastAPI server ✅ FIXED
-│   ├── gradcam.py             # Multi-disease Grad-CAM ✅ NEW
-│   ├── image_quality.py       # Quality checker
-│   ├── sarvam_helper.py       # Multilingual advice
-│   ├── utils.py               # Ensemble prediction
-│   └── models/                # Trained model weights
-│       ├── resnet_realistic.pth
-│       ├── densenet_realistic.pth
-│       ├── ghostnet_realistic.pth
-│       └── agri_realistic.pth
-└── frontend/
-    ├── src/
-    │   ├── App.jsx            # Main UI ✅ UPDATED
-    │   └── translations.js    # 11 languages ✅ COMPLETE
-    └── dist/                  # Built files
-```
-
----
-
-## Success Indicators
-
-✅ Backend starts without import errors
-✅ Frontend shows styled interface
-✅ Image upload works (camera/gallery/drag-drop)
-✅ Quality checker runs before prediction
-✅ Disease prediction returns results
-✅ Disease Localization section appears
-✅ Individual disease overlays show in different colors
-✅ Combined view merges all diseases
-✅ Toggle button switches views
-✅ All 11 languages work correctly
-
----
-
-## Notes
-
-- First prediction may be slow (model loading)
-- Subsequent predictions are faster
-- GPU will be used if available (much faster)
-- CPU fallback is automatic
-- Image quality check is mandatory before prediction
-- Multilingual advice uses Sarvam AI API
-
----
-
-## Ready to Test! 🚀
-
-Your AgriScan AI with Multi-Disease Localization is ready for demonstration!
+### Missing Pretrained Weights
+If model weights (`.pth` files) are not yet downloaded:
+- LeafSense attempts auto-downloading them from Hugging Face on startup.
+- You can manually trigger the download script:
+  ```bash
+  cd backend
+  python download_models.py
+  ```
+- If running in a test or offline environment without weights, the backend gracefully stays online in test mode so APIs and frontend integrations can be verified.

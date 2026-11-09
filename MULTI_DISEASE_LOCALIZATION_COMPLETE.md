@@ -1,7 +1,7 @@
 # Multi-Disease Localization - IMPLEMENTATION COMPLETE ✅
 
 ## Summary
-Successfully implemented multi-disease localization with color-coded Grad-CAM visualizations for the AgriScan AI project. Each detected disease is now displayed with a unique color overlay, allowing users to visually identify where different diseases are located on the leaf.
+Successfully implemented multi-disease localization with color-coded Grad-CAM visualizations for the LeafSense project. Each detected disease is now displayed with a unique color overlay, allowing users to visually identify where different diseases are located on the leaf.
 
 ---
 

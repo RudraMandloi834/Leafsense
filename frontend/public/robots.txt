@@ -1,0 +1,18 @@
+# ==============================================================================
+# LeafSense robots.txt
+# Controls web crawler indexing for the LeafSense web application.
+# Update the placeholder domain (https://leafsense.example.com) upon production deployment.
+# ==============================================================================
+
+User-agent: *
+Allow: /
+
+# Prevent web crawlers from indexing internal API routes and backend services
+Disallow: /api/
+Disallow: /models/
+Disallow: /backend/
+Disallow: /.env
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://leafsense.example.com/sitemap.xml

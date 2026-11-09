@@ -46,3 +46,21 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Vector databases & local KB indices
+chroma_db/
+backend/knowledge_base/chroma_db/
+backend/knowledge_base/kb_manifest.json
+
+# Model weights - download separately
+backend/models/*.pth
+backend/models/*.pt
+backend/models/*.onnx
+
+# Generated RAG vector database
+backend/knowledge_base/chroma_db/
+
+# Local model weights
+backend/models/*.pth
+backend/models/*.pt
+backend/models/*.onnx

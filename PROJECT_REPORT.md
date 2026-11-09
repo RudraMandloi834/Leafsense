@@ -1102,7 +1102,7 @@ Complete list of 17 disease classes covered by AgriScan AI:
 ## Appendix D: GitHub Repository
 
 **Project Repository:**
-- URL: https://github.com/arghaDEVIL/slmdd
+- URL: https://github.com/RudraMandloi834/Leafsense
 - License: MIT
 - Models: https://huggingface.co/adb043/agriscan_models
 

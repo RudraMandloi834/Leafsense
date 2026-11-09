@@ -1,4 +1,4 @@
-# AgriScan AI - Project Report Summary
+# LeafSense - Project Report Summary
 
 ## 📄 Report Status: COMPLETE ✅
 

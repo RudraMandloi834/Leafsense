@@ -2,29 +2,63 @@ import { useState, useEffect, useRef } from "react"
 import { translations } from "./translations"
 import html2canvas from "html2canvas"
 import CameraCapture from "./CameraCapture"
-import { Sun, Moon, Sprout, Zap, Bot, Globe, Camera, Image, Trophy, Medal, Lightbulb, Search, Download, Trash2, AlertCircle } from "lucide-react"
+import ChatAssistant from "./ChatAssistant"
+import {
+  Sun,
+  Moon,
+  Sprout,
+  Zap,
+  Bot,
+  Globe,
+  Camera,
+  Image as ImageIcon,
+  Trophy,
+  Medal,
+  Lightbulb,
+  Search,
+  Download,
+  Trash2,
+  AlertCircle,
+  Layers,
+  LayoutGrid,
+} from "lucide-react"
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
 
 export default function App() {
   const [uiLanguage, setUiLanguage] = useState("en")
   const [darkMode, setDarkMode] = useState(false)
   const [predictions, setPredictions] = useState([])
+  const [detectedDiseases, setDetectedDiseases] = useState([])
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [chatContext, setChatContext] = useState(null)
   const t = translations[uiLanguage] || translations.en
 
-  // Debug translations
-  console.log("Current language:", uiLanguage)
-  console.log("Translation object keys:", t ? Object.keys(t).length : "undefined")
-  console.log("Disease localization keys:", {
-    diseaseLocalization: t?.diseaseLocalization,
-    showIndividual: t?.showIndividual,
-    showCombined: t?.showCombined
-  })
+  const handleOpenChat = (customPredictions = null, customDetected = null) => {
+    const activePreds = customPredictions || predictions
+    const activeDetected =
+      customDetected ||
+      (detectedDiseases && detectedDiseases.length > 0
+        ? detectedDiseases
+        : activePreds ? activePreds.map((p) => p.label) : [])
+
+    if (activePreds && activePreds.length > 0) {
+      setChatContext({
+        predictions: activePreds,
+        detectedDiseases: activeDetected,
+      })
+    } else {
+      setChatContext(null)
+    }
+    setIsChatOpen(true)
+  }
 
   // Dark mode effect
   useEffect(() => {
     if (darkMode) {
-      document.documentElement.classList.add('dark')
+      document.documentElement.classList.add("dark")
     } else {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove("dark")
     }
   }, [darkMode])
 
@@ -43,35 +77,68 @@ export default function App() {
   ]
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100'} animate-gradient flex flex-col items-center p-2 sm:p-4 md:p-6 transition-colors duration-500`}>
+    <div
+      className={`min-h-screen ${
+        darkMode
+          ? "bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100"
+          : "bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100 text-gray-900"
+      } flex flex-col items-center p-2 sm:p-4 md:p-6 transition-colors duration-300`}
+    >
       <header className="w-full max-w-7xl mb-4 sm:mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
           <div className="text-center sm:text-left flex-1 w-full sm:w-auto">
-            <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${darkMode ? 'from-green-400 to-emerald-400' : 'from-green-600 to-emerald-600'} transition-all duration-300`}>
+            <h1
+              className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${
+                darkMode ? "from-green-400 to-emerald-300" : "from-green-700 to-emerald-600"
+              }`}
+            >
               🌿 {t.appTitle}
             </h1>
-            <p className={`mt-1 sm:mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-xs sm:text-sm md:text-base transition-colors`}>
+            <p
+              className={`mt-1 sm:mt-2 ${
+                darkMode ? "text-gray-300" : "text-gray-600"
+              } text-xs sm:text-sm md:text-base font-medium`}
+            >
               {t.appSubtitle}
             </p>
           </div>
 
-          {/* Controls */}
+          {/* Controls: AI Assistant, Dark Mode & Language */}
           <div className="flex gap-2 items-center w-full sm:w-auto justify-center sm:justify-end">
-            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => handleOpenChat()}
+              className={`px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl transition-all duration-300 font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-md active:scale-95 ${
+                darkMode
+                  ? "bg-gradient-to-r from-emerald-700 to-teal-800 text-emerald-100 hover:from-emerald-600 hover:to-teal-700 border border-emerald-600"
+                  : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 shadow-emerald-200"
+              }`}
+              title={t.chatButton || "Ask AI Assistant"}
+            >
+              <Bot size={18} />
+              <span className="hidden sm:inline">{t.chatButton || "AI Assistant"}</span>
+            </button>
+
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 sm:p-2.5 rounded-lg transition-all duration-300 ${darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-100'} shadow-lg`}
+              className={`p-2 sm:p-2.5 rounded-xl transition-all duration-300 ${
+                darkMode
+                  ? "bg-gray-800 text-yellow-400 hover:bg-gray-700 border border-gray-700"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-green-200"
+              } shadow-md`}
               title={darkMode ? t.lightMode : t.darkMode}
               aria-label={darkMode ? t.lightMode : t.darkMode}
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
-            {/* Global Language Selector */}
             <select
               value={uiLanguage}
               onChange={(e) => setUiLanguage(e.target.value)}
-              className={`p-2 sm:p-2.5 border-2 rounded-lg focus:outline-none transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-initial ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:border-green-400' : 'bg-white border-green-300 text-gray-900 focus:border-green-500'}`}
+              className={`p-2 sm:p-2.5 border-2 rounded-xl focus:outline-none transition-all text-xs sm:text-sm font-semibold flex-1 sm:flex-initial shadow-md ${
+                darkMode
+                  ? "bg-gray-800 border-gray-700 text-gray-100 focus:border-green-400"
+                  : "bg-white border-green-300 text-gray-900 focus:border-green-600"
+              }`}
             >
               {languages.map((lang) => (
                 <option key={lang.code} value={lang.code}>
@@ -83,103 +150,175 @@ export default function App() {
         </div>
       </header>
 
-      <div className={`w-full max-w-7xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <main
+        className={`w-full max-w-7xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 border ${
+          darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-green-100"
+        }`}
+      >
         <div className="grid lg:grid-cols-5">
-          {/* Left sidebar - hide on mobile when predictions are shown */}
-          <div className={`lg:col-span-2 bg-gradient-to-br ${darkMode ? 'from-green-700 to-emerald-800' : 'from-green-600 to-emerald-700'} text-white p-4 sm:p-6 md:p-8 lg:p-10 flex flex-col justify-center transition-all duration-500 ${predictions.length > 0 ? 'hidden lg:flex' : ''}`}>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">
-              {t.mainHeading}
-            </h2>
-
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-green-100 leading-relaxed">
-              {t.mainDescription}
-            </p>
-
-            <div className="mt-4 sm:mt-6 md:mt-8 space-y-2 sm:space-y-3">
-              <div className="bg-white/10 p-3 sm:p-4 rounded-lg sm:rounded-xl backdrop-blur-sm flex items-start gap-2 sm:gap-3">
-                <Sprout size={24} className="flex-shrink-0 text-green-200" />
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base">{t.feature1Title}</h3>
-                  <p className="text-xs sm:text-sm text-green-100">{t.feature1Desc}</p>
-                </div>
+          {/* Left Hero Sidebar */}
+          <div
+            className={`lg:col-span-2 bg-gradient-to-br ${
+              darkMode ? "from-emerald-900 to-teal-950" : "from-emerald-700 to-teal-800"
+            } text-white p-6 sm:p-8 md:p-10 flex flex-col justify-between ${
+              predictions.length > 0 ? "hidden lg:flex" : ""
+            }`}
+          >
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold mb-4 text-emerald-200 border border-white/10">
+                <span>AI-Powered Pathology</span>
               </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+                {t.mainHeading}
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-emerald-100/90 leading-relaxed">
+                {t.mainDescription}
+              </p>
 
-              <div className="bg-white/10 p-3 sm:p-4 rounded-lg sm:rounded-xl backdrop-blur-sm flex items-start gap-2 sm:gap-3">
-                <Zap size={24} className="flex-shrink-0 text-yellow-300" />
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base">{t.feature2Title}</h3>
-                  <p className="text-xs sm:text-sm text-green-100">{t.feature2Desc}</p>
+              <div className="mt-8 space-y-3">
+                <div className="bg-white/10 p-3.5 rounded-xl backdrop-blur-sm flex items-start gap-3 border border-white/10">
+                  <Sprout size={24} className="flex-shrink-0 text-emerald-300" />
+                  <div>
+                    <h3 className="font-semibold text-sm sm:text-base">{t.feature1Title}</h3>
+                    <p className="text-xs text-emerald-100/80">{t.feature1Desc}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="bg-white/10 p-3 sm:p-4 rounded-lg sm:rounded-xl backdrop-blur-sm flex items-start gap-2 sm:gap-3">
-                <Bot size={24} className="flex-shrink-0 text-blue-300" />
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base">{t.feature3Title}</h3>
-                  <p className="text-xs sm:text-sm text-green-100">{t.feature3Desc}</p>
+                <div className="bg-white/10 p-3.5 rounded-xl backdrop-blur-sm flex items-start gap-3 border border-white/10">
+                  <Zap size={24} className="flex-shrink-0 text-amber-300" />
+                  <div>
+                    <h3 className="font-semibold text-sm sm:text-base">{t.feature2Title}</h3>
+                    <p className="text-xs text-emerald-100/80">{t.feature2Desc}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="bg-white/10 p-3 sm:p-4 rounded-lg sm:rounded-xl backdrop-blur-sm flex items-start gap-2 sm:gap-3">
-                <Globe size={24} className="flex-shrink-0 text-cyan-300" />
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base">{t.feature4Title}</h3>
-                  <p className="text-xs sm:text-sm text-green-100">{t.feature4Desc}</p>
+                <div className="bg-white/10 p-3.5 rounded-xl backdrop-blur-sm flex items-start gap-3 border border-white/10">
+                  <Bot size={24} className="flex-shrink-0 text-cyan-300" />
+                  <div>
+                    <h3 className="font-semibold text-sm sm:text-base">{t.feature3Title}</h3>
+                    <p className="text-xs text-emerald-100/80">{t.feature3Desc}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white/10 p-3.5 rounded-xl backdrop-blur-sm flex items-start gap-3 border border-white/10">
+                  <Globe size={24} className="flex-shrink-0 text-teal-200" />
+                  <div>
+                    <h3 className="font-semibold text-sm sm:text-base">{t.feature4Title}</h3>
+                    <p className="text-xs text-emerald-100/80">{t.feature4Desc}</p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <div className="mt-8 pt-4 border-t border-white/10 text-xs text-emerald-200/70">
+              Covers Apple, Tomato, Grape, Corn & Potato crops.
+            </div>
           </div>
 
+          {/* Right Upload & Diagnosis Pane */}
           <div className="lg:col-span-3">
-            <UploadSection uiLanguage={uiLanguage} darkMode={darkMode} predictions={predictions} setPredictions={setPredictions} />
+            <UploadSection
+              uiLanguage={uiLanguage}
+              darkMode={darkMode}
+              predictions={predictions}
+              setPredictions={setPredictions}
+              detectedDiseases={detectedDiseases}
+              setDetectedDiseases={setDetectedDiseases}
+              onAskAi={handleOpenChat}
+            />
           </div>
         </div>
-      </div>
+      </main>
 
-      <footer className={`mt-4 sm:mt-6 text-center text-xs sm:text-sm px-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'} transition-colors`}>
-        <p>{t.footer}</p>
+      <footer
+        className={`mt-6 mb-4 text-center text-xs px-4 max-w-4xl space-y-1.5 ${
+          darkMode ? "text-gray-400" : "text-gray-600"
+        }`}
+      >
+        <p className="font-medium">{t.footer}</p>
+        <p className="text-[11px] opacity-80">
+          Assistive AI tool for preliminary diagnostics. Always confirm with approved chemical labels and local agricultural extension (KVK) specialists before pesticide application.
+        </p>
+        <p className="text-[11px] pt-1">
+          <a
+            href="https://github.com/RudraMandloi834/Leafsense"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+          >
+            LeafSense Open Source Repository on GitHub
+          </a>
+        </p>
       </footer>
+
+      {/* Floating Assistant Trigger Button */}
+      {!isChatOpen && (
+        <button
+          onClick={() => handleOpenChat()}
+          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 p-3.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-2xl flex items-center gap-2.5 transition-all duration-300 hover:scale-105 active:scale-95 border border-white/20"
+          aria-label="Open AI Assistant"
+        >
+          <div className="relative">
+            <Bot size={22} />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-300 rounded-full animate-ping"></span>
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full"></span>
+          </div>
+          <span className="hidden sm:inline font-bold text-sm tracking-wide">
+            {t.chatButton || "Ask AI Assistant"}
+          </span>
+        </button>
+      )}
+
+      {/* Reusable Chat Assistant Modal / Drawer */}
+      <ChatAssistant
+        key={chatContext?.predictions?.[0]?.label || (isChatOpen ? "open" : "closed")}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        initialContext={chatContext}
+        uiLanguage={uiLanguage}
+        darkMode={darkMode}
+      />
     </div>
   )
 }
 
-function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
-  const t = translations[uiLanguage]
+function UploadSection({
+  uiLanguage,
+  darkMode,
+  predictions,
+  setPredictions,
+  detectedDiseases: externalDetected,
+  setDetectedDiseases: externalSetDetected,
+  onAskAi,
+}) {
+  const t = translations[uiLanguage] || translations.en
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [loading, setLoading] = useState(false)
   const [translating, setTranslating] = useState(false)
   const [advice, setAdvice] = useState("")
-  const [adviceLanguage, setAdviceLanguage] = useState(uiLanguage)
-  const [detectedDiseases, setDetectedDiseases] = useState([])
-  const [language, setLanguage] = useState(uiLanguage)
+  const [customLanguage, setCustomLanguage] = useState(null)
+  const language = customLanguage || uiLanguage
+  const [adviceLanguageOverride, setAdviceLanguageOverride] = useState(null)
+  const adviceLanguage = adviceLanguageOverride || language
+  const [localDetectedDiseases, setLocalDetectedDiseases] = useState([])
+  const detectedDiseases = externalDetected || localDetectedDiseases
+  const setDetectedDiseases = (val) => {
+    setLocalDetectedDiseases(val)
+    if (externalSetDetected) externalSetDetected(val)
+  }
   const [error, setError] = useState("")
   const [dragActive, setDragActive] = useState(false)
   const [imageZoomed, setImageZoomed] = useState(false)
   const [showCamera, setShowCamera] = useState(false)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
   const [qualityCheck, setQualityCheck] = useState(null)
   const [checkingQuality, setCheckingQuality] = useState(false)
   const [visualizations, setVisualizations] = useState([])
   const [combinedVisualization, setCombinedVisualization] = useState(null)
   const [showCombined, setShowCombined] = useState(true)
+
   const resultsRef = useRef(null)
   const fileInputRef = useRef(null)
-
-  // Detect screen size changes
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 1024
-      console.log('Screen width:', window.innerWidth, 'isMobile:', mobile)
-      setIsMobile(mobile)
-    }
-
-    // Call immediately on mount
-    handleResize()
-
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
 
   const languages = [
     { code: "en", name: "English", flag: "🇬🇧" },
@@ -196,11 +335,10 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
   ]
 
   const handleFile = (selectedFile, previewUrl = null) => {
-    console.log('handleFile called with:', selectedFile)
     if (!selectedFile) return
 
     if (!selectedFile.type.startsWith("image/")) {
-      setError("Please upload a valid image file")
+      setError("Please select a valid image file (JPG, PNG, WebP)")
       return
     }
 
@@ -209,16 +347,16 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
     setPredictions([])
     setAdvice("")
     setDetectedDiseases([])
+    setVisualizations([])
+    setCombinedVisualization(null)
     setError("")
     setQualityCheck(null)
 
-    // Automatically check quality
-    console.log('About to call checkImageQuality')
+    // Pre-flight image quality check
     checkImageQuality(selectedFile)
   }
 
   const checkImageQuality = async (imageFile) => {
-    console.log('Starting quality check for:', imageFile.name)
     setCheckingQuality(true)
     setQualityCheck(null)
 
@@ -226,40 +364,32 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
       const formData = new FormData()
       formData.append("file", imageFile)
 
-      console.log('Sending request to /check-quality...')
-      const response = await fetch("http://127.0.0.1:8000/check-quality", {
+      const response = await fetch(`${API_BASE_URL}/check-quality`, {
         method: "POST",
         body: formData,
       })
 
-      console.log('Response status:', response.status)
-
-      if (!response.ok) {
-        throw new Error(`Quality check failed: ${response.status}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setQualityCheck(data.quality)
+        }
       }
-
-      const data = await response.json()
-      console.log('Quality check result:', data)
-
-      if (data.success) {
-        setQualityCheck(data.quality)
-        console.log('Quality check set:', data.quality)
-      }
-    } catch (err) {
-      console.error("Quality check error:", err)
-      // Don't show error to user, just skip quality check
+    } catch {
+      // Quality check failure is non-fatal; user can still proceed with prediction
+    } finally {
+      setCheckingQuality(false)
     }
-
-    setCheckingQuality(false)
-    console.log('Quality check complete')
   }
 
-  const handleCameraCapture = (file, previewUrl) => {
-    handleFile(file, previewUrl)
+  const handleCameraCapture = (capturedFile, previewUrl) => {
+    handleFile(capturedFile, previewUrl)
   }
 
   const handleFileInput = (e) => {
-    handleFile(e.target.files[0])
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0])
+    }
   }
 
   const handleDrag = (e) => {
@@ -276,7 +406,6 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0])
     }
@@ -288,51 +417,42 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
     setPredictions([])
     setAdvice("")
     setDetectedDiseases([])
+    setVisualizations([])
+    setCombinedVisualization(null)
     setError("")
-    setAdviceLanguage("en")
-    setLanguage("en")
+    setQualityCheck(null)
     setImageZoomed(false)
+    setCustomLanguage(null)
+    setAdviceLanguageOverride(null)
   }
 
-  // Download report as image
+  // Export diagnostic report
   const downloadReport = async () => {
     if (!resultsRef.current) return
-
     try {
       const canvas = await html2canvas(resultsRef.current, {
-        backgroundColor: darkMode ? '#1f2937' : '#ffffff',
+        backgroundColor: darkMode ? "#111827" : "#ffffff",
         scale: 2,
       })
-
-      const link = document.createElement('a')
-      link.download = `plant-disease-report-${Date.now()}.png`
+      const link = document.createElement("a")
+      link.download = `leafsense-diagnostic-report-${Date.now()}.png`
       link.href = canvas.toDataURL()
       link.click()
     } catch (err) {
-      console.error('Failed to download report:', err)
+      console.error("Export report error:", err)
     }
   }
 
-  // Get severity level based on confidence
   const getSeverity = (confidence) => {
-    if (confidence >= 0.7) return { level: t.high, color: 'red' }
-    if (confidence >= 0.5) return { level: t.medium, color: 'yellow' }
-    return { level: t.low, color: 'green' }
+    if (confidence >= 0.7) return { level: t.high, colorClass: "text-red-500", stroke: "#ef4444" }
+    if (confidence >= 0.45) return { level: t.medium, colorClass: "text-amber-500", stroke: "#f59e0b" }
+    return { level: t.low, colorClass: "text-emerald-500", stroke: "#10b981" }
   }
 
-  // Circular Progress Component
-  const CircularProgress = ({ percentage, size = 120, strokeWidth = 8, color = "green" }) => {
+  const CircularProgress = ({ percentage, strokeColor = "#10b981", size = 96, strokeWidth = 8 }) => {
     const radius = (size - strokeWidth) / 2
     const circumference = radius * 2 * Math.PI
     const offset = circumference - (percentage / 100) * circumference
-
-    const colorMap = {
-      green: { stroke: '#10b981', glow: 'rgba(16, 185, 129, 0.3)' },
-      yellow: { stroke: '#f59e0b', glow: 'rgba(245, 158, 11, 0.3)' },
-      red: { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.3)' },
-    }
-
-    const colors = colorMap[color] || colorMap.green
 
     return (
       <div className="relative inline-flex items-center justify-center">
@@ -341,7 +461,7 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={darkMode ? '#374151' : '#e5e7eb'}
+            stroke={darkMode ? "#374151" : "#e5e7eb"}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -349,18 +469,17 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={colors.stroke}
+            stroke={strokeColor}
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
             className="transition-all duration-1000 ease-out"
-            style={{ filter: `drop-shadow(0 0 8px ${colors.glow})` }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-2xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+          <span className={`text-xl font-extrabold ${darkMode ? "text-gray-100" : "text-gray-900"}`}>
             {percentage.toFixed(1)}%
           </span>
         </div>
@@ -375,11 +494,9 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
     setError("")
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/translate-advice", {
+      const response = await fetch(`${API_BASE_URL}/translate-advice`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           diseases: detectedDiseases,
           target_language: newLanguage,
@@ -387,22 +504,21 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
       })
 
       if (!response.ok) {
-        throw new Error(`Translation failed: ${response.status}`)
+        throw new Error(`Translation status: ${response.status}`)
       }
 
       const data = await response.json()
-
       if (data.success) {
         setAdvice(data.advice)
-        setAdviceLanguage(newLanguage)
+        setAdviceLanguageOverride(newLanguage)
       } else {
         setError(`Translation error: ${data.error}`)
       }
     } catch (err) {
       setError(`Translation failed: ${err.message}`)
+    } finally {
+      setTranslating(false)
     }
-
-    setTranslating(false)
   }
 
   const predictDisease = async () => {
@@ -421,127 +537,111 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
       formData.append("file", file)
       formData.append("language", language)
 
-      const response = await fetch("http://127.0.0.1:8000/predict", {
+      const response = await fetch(`${API_BASE_URL}/predict`, {
         method: "POST",
         body: formData,
       })
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`)
+        const errDetail = await response.text()
+        throw new Error(`Server returned error ${response.status}: ${errDetail}`)
       }
 
       const data = await response.json()
 
       if (!data.predictions) {
-        setError("No predictions received from server")
-        setLoading(false)
+        setError("Invalid response format received from inference server")
         return
       }
 
-      const preds = Object.entries(data.predictions)
-        .sort((a, b) => b[1] - a[1])
-        .map(([label, confidence]) => ({
-          label,
-          confidence,
-        }))
+      const preds = Object.entries(data.predictions).map(([label, confidence]) => ({
+        label,
+        confidence,
+      }))
 
       setPredictions(preds)
       setAdvice(data.advice || "")
-      setAdviceLanguage(language)
+      setAdviceLanguageOverride(language)
       setDetectedDiseases(data.detected_diseases || [])
 
-      // Store multi-disease visualizations
-      console.log("API Response data:", {
-        hasVisualizations: !!data.visualizations,
-        visualizationsLength: data.visualizations?.length,
-        hasCombined: !!data.combined_visualization
-      });
-
       if (data.visualizations && data.visualizations.length > 0) {
-        console.log("Setting visualizations:", data.visualizations.length);
         setVisualizations(data.visualizations)
       }
       if (data.combined_visualization) {
-        console.log("Setting combined visualization");
         setCombinedVisualization(data.combined_visualization)
       }
     } catch (err) {
-      setError(`Connection failed: ${err.message}. Make sure the backend is running on port 8000.`)
+      setError(`Connection failure: ${err.message}. Ensure backend is active at ${API_BASE_URL}.`)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
-  // Parse markdown-style advice for better rendering
+  // Safe and clean advisory markdown parser
   const renderAdvice = (text) => {
     if (!text) return null
 
-    const lines = text.split('\n')
+    const lines = text.split("\n")
     const elements = []
     let key = 0
 
+    const headerEmojis = ["🌾", "⚠️", "🔍", "🎯", "🍎", "🌿"]
+    const subheaderEmojis = ["🦠", "🍃", "💊", "🛡️", "💧", "👨‍🌾", "🗑️"]
+
     lines.forEach((line) => {
-      const trimmedLine = line.trim()
+      const trimmed = line.trim()
+      if (!trimmed) return
 
-      if (!trimmedLine) {
-        // Skip empty lines
-        return
-      }
+      const isHeaderEmoji = headerEmojis.some((e) => trimmed.startsWith(e))
+      const isSubheaderEmoji = subheaderEmojis.some((e) => trimmed.startsWith(e))
 
-      // Main headers (##) or lines with emojis at start
-      if (trimmedLine.startsWith('## ') || /^[🌾⚠️🔍]/.test(trimmedLine)) {
+      if (trimmed.startsWith("## ") || isHeaderEmoji) {
         elements.push(
-          <h3 key={key++} className={`text-xl font-bold mt-8 mb-4 pb-2 border-b-2 flex items-center gap-2 ${darkMode ? 'text-gray-100 border-blue-600' : 'text-gray-900 border-blue-300'}`}>
-            {trimmedLine.replace('## ', '')}
+          <h3
+            key={key++}
+            className={`text-lg sm:text-xl font-bold mt-6 mb-3 pb-2 border-b-2 flex items-center gap-2 ${
+              darkMode ? "text-emerald-300 border-emerald-800" : "text-emerald-800 border-emerald-200"
+            }`}
+          >
+            {trimmed.replace(/^##\s*/, "")}
           </h3>
         )
-      }
-      // Sub headers (###) or lines with specific emojis
-      else if (trimmedLine.startsWith('### ') || /^[🦠🍃💊🛡️]/.test(trimmedLine)) {
+      } else if (trimmed.startsWith("### ") || isSubheaderEmoji) {
         elements.push(
-          <h4 key={key++} className={`text-lg font-semibold mt-6 mb-3 flex items-center gap-2 p-3 rounded-lg ${darkMode ? 'text-gray-100 bg-blue-900/30' : 'text-gray-800 bg-blue-50'}`}>
-            {trimmedLine.replace('### ', '')}
+          <h4
+            key={key++}
+            className={`text-sm sm:text-base font-semibold mt-4 mb-2 p-2 rounded-lg ${
+              darkMode ? "text-gray-100 bg-gray-800/80 border border-gray-700" : "text-gray-900 bg-emerald-50 border border-emerald-100"
+            }`}
+          >
+            {trimmed.replace(/^###\s*/, "")}
           </h4>
         )
-      }
-      // Horizontal rule
-      else if (trimmedLine === '---') {
+      } else if (trimmed === "---") {
         elements.push(
-          <hr key={key++} className={`my-8 border-t-2 ${darkMode ? 'border-blue-700' : 'border-blue-200'}`} />
+          <hr
+            key={key++}
+            className={`my-6 border-t ${darkMode ? "border-gray-700" : "border-emerald-200"}`}
+          />
         )
-      }
-      // Bold text (wrapped in **)
-      else if (trimmedLine.includes('**')) {
-        const parts = trimmedLine.split('**')
+      } else if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
         elements.push(
-          <p key={key++} className={`leading-relaxed mb-3 text-base ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {parts.map((part, i) =>
-              i % 2 === 1 ? <strong key={i} className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{part}</strong> : part
-            )}
-          </p>
-        )
-      }
-      // Bullet points (lines starting with - or •)
-      else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) {
-        elements.push(
-          <li key={key++} className={`leading-relaxed mb-2 ml-6 text-base list-disc ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {trimmedLine.replace(/^[-•]\s*/, '')}
+          <li
+            key={key++}
+            className={`leading-relaxed mb-1.5 ml-5 text-sm list-disc ${
+              darkMode ? "text-gray-300" : "text-gray-700"
+            }`}
+          >
+            {trimmed.replace(/^[-•]\s*/, "")}
           </li>
         )
-      }
-      // Numbered lists
-      else if (/^\d+\.\s/.test(trimmedLine)) {
+      } else {
         elements.push(
-          <li key={key++} className={`leading-relaxed mb-2 ml-6 text-base list-decimal ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {trimmedLine.replace(/^\d+\.\s*/, '')}
-          </li>
-        )
-      }
-      // Regular paragraphs
-      else {
-        elements.push(
-          <p key={key++} className={`leading-relaxed mb-3 text-base ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {trimmedLine}
+          <p
+            key={key++}
+            className={`leading-relaxed mb-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+          >
+            {trimmed}
           </p>
         )
       }
@@ -551,41 +651,59 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
   }
 
   return (
-    <div className={`p-4 sm:p-6 md:p-8 lg:p-10 flex flex-col ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
-        <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-          {t.uploadTitle}
-        </h2>
+    <div className={`p-4 sm:p-6 md:p-8 flex flex-col ${darkMode ? "text-gray-100" : "text-gray-900"}`}>
+      {/* Upload Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            {t.uploadTitle}
+          </h2>
+          <p className={`text-xs sm:text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            Upload or capture high-resolution foliage for diagnostic analysis
+          </p>
+        </div>
 
         {preview && (
           <div className="flex gap-2 w-full sm:w-auto">
             {predictions.length > 0 && (
               <button
                 onClick={downloadReport}
-                className={`text-xs sm:text-sm font-medium flex items-center justify-center gap-1 px-2 sm:px-3 py-2 rounded-lg transition-all flex-1 sm:flex-initial ${darkMode ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-100 hover:bg-green-200 text-green-700'}`}
+                className="text-xs font-semibold flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl transition-all shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                <Download size={16} /> <span className="hidden sm:inline">{t.downloadReport}</span>
+                <Download size={15} /> <span>{t.downloadReport}</span>
               </button>
             )}
             <button
               onClick={resetUpload}
-              className={`text-xs sm:text-sm font-medium flex items-center justify-center gap-1 px-2 sm:px-3 py-2 rounded-lg transition-all flex-1 sm:flex-initial ${darkMode ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}
+              className={`text-xs font-semibold flex items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all border ${
+                darkMode
+                  ? "bg-gray-800 hover:bg-red-950 text-red-400 border-red-900/50"
+                  : "bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+              }`}
             >
-              <Trash2 size={16} /> {t.clearButton}
+              <Trash2 size={15} /> {t.clearButton}
             </button>
           </div>
         )}
       </div>
 
-      {/* Language Selection */}
-      <div className="mb-4 sm:mb-6">
-        <label className={`block text-xs sm:text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+      {/* Target Language Selector */}
+      <div className="mb-4">
+        <label
+          className={`block text-xs font-bold uppercase tracking-wider mb-2 ${
+            darkMode ? "text-gray-400" : "text-gray-600"
+          }`}
+        >
           {t.selectLanguage}
         </label>
         <select
           value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className={`w-full p-2.5 sm:p-3 border-2 rounded-lg sm:rounded-xl focus:outline-none transition-all text-sm sm:text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:border-green-400' : 'bg-white border-gray-200 text-gray-900 focus:border-green-500'}`}
+          onChange={(e) => setCustomLanguage(e.target.value)}
+          className={`w-full p-2.5 sm:p-3 border-2 rounded-xl focus:outline-none transition-all text-sm font-medium shadow-sm ${
+            darkMode
+              ? "bg-gray-800 border-gray-700 text-gray-100 focus:border-green-400"
+              : "bg-white border-gray-200 text-gray-900 focus:border-green-600"
+          }`}
         >
           {languages.map((lang) => (
             <option key={lang.code} value={lang.code}>
@@ -595,42 +713,7 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
         </select>
       </div>
 
-      {/* Mobile: Camera and Upload Options */}
-      {isMobile && (
-        <div className="mb-4 sm:mb-6 grid grid-cols-2 gap-3">
-          <button
-            onClick={() => setShowCamera(true)}
-            className={`p-4 rounded-xl border-2 transition-all duration-300 flex flex-col items-center justify-center gap-2 active:scale-95 ${darkMode
-              ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500 active:from-blue-500 active:to-blue-600'
-              : 'bg-gradient-to-br from-blue-500 to-blue-600 border-blue-400 active:from-blue-400 active:to-blue-500'
-              } text-white shadow-lg`}
-          >
-            <Camera size={36} />
-            <span className="text-xs font-semibold text-center">{t.takePhoto}</span>
-          </button>
-
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className={`p-4 rounded-xl border-2 transition-all duration-300 flex flex-col items-center justify-center gap-2 active:scale-95 ${darkMode
-              ? 'bg-gradient-to-br from-green-600 to-emerald-700 border-green-500 active:from-green-500 active:to-emerald-600'
-              : 'bg-gradient-to-br from-green-500 to-emerald-600 border-green-400 active:from-green-400 active:to-emerald-500'
-              } text-white shadow-lg`}
-          >
-            <Image size={36} />
-            <span className="text-xs font-semibold text-center">{t.uploadFromGallery}</span>
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileInput}
-          />
-        </div>
-      )}
-
-      {/* Camera Modal */}
+      {/* Camera Capture Modal */}
       {showCamera && (
         <CameraCapture
           onCapture={handleCameraCapture}
@@ -640,129 +723,148 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
         />
       )}
 
-      {/* Desktop: Drag & Drop Upload Area */}
-      {!isMobile && (
-        <div className="mb-4 sm:mb-6">
-          <label
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            className={`flex border-2 border-dashed rounded-3xl p-8 md:p-10 flex-col items-center justify-center cursor-pointer transition-all duration-300 ${dragActive
-              ? `${darkMode ? 'border-green-400 bg-green-900/20' : 'border-green-500 bg-green-50'} scale-[1.02]`
-              : `${darkMode ? 'border-gray-600 hover:bg-gray-700/50' : 'border-green-300 hover:bg-green-50'}`
-              }`}
-          >
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileInput}
-            />
+      {/* Mobile/Camera Action Bar */}
+      <div className="mb-4 grid grid-cols-2 gap-3">
+        <button
+          onClick={() => setShowCamera(true)}
+          className={`p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-center gap-2 shadow-sm ${
+            darkMode
+              ? "bg-blue-600 hover:bg-blue-700 border-blue-500 text-white"
+              : "bg-blue-600 hover:bg-blue-700 border-blue-500 text-white"
+          }`}
+        >
+          <Camera size={18} />
+          <span className="text-xs sm:text-sm font-semibold">{t.takePhoto}</span>
+        </button>
 
-            <div className="mb-4">
-              {dragActive ? <Download size={64} className={darkMode ? 'text-green-400' : 'text-green-600'} /> : <Image size={64} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />}
-            </div>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className={`p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-center gap-2 shadow-sm ${
+            darkMode
+              ? "bg-gray-800 hover:bg-gray-700 border-gray-700 text-emerald-400"
+              : "bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-800"
+          }`}
+        >
+          <ImageIcon size={18} />
+          <span className="text-xs sm:text-sm font-semibold">{t.uploadFromGallery}</span>
+        </button>
 
-            <p className={`font-medium text-base md:text-lg text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {dragActive ? t.dropHere : t.uploadArea}
-            </p>
-            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              {t.uploadSupports}
-            </p>
-          </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileInput}
+        />
+      </div>
+
+      {/* Drag & Drop Area */}
+      {!preview && (
+        <div
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
+            dragActive
+              ? darkMode
+                ? "border-green-400 bg-green-950/30"
+                : "border-green-500 bg-green-50"
+              : darkMode
+              ? "border-gray-700 hover:border-green-500 hover:bg-gray-800/50"
+              : "border-gray-300 hover:border-green-500 hover:bg-emerald-50/50"
+          }`}
+        >
+          <ImageIcon
+            size={48}
+            className={`mb-3 ${darkMode ? "text-gray-500" : "text-gray-400"}`}
+          />
+          <p className="text-sm font-semibold text-center">{t.uploadArea}</p>
+          <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            {t.uploadSupports}
+          </p>
         </div>
       )}
 
       {/* Image Preview */}
       {preview && (
-        <div className="mt-6 flex justify-center">
-          <div className="relative group">
+        <div className="mt-4 flex flex-col items-center">
+          <div className="relative group max-w-sm w-full">
             <img
               src={preview}
-              alt="preview"
+              alt="Leaf sample preview"
+              decoding="async"
               onClick={() => setImageZoomed(!imageZoomed)}
-              className={`w-full max-w-md h-64 object-cover rounded-2xl shadow-xl border-4 cursor-pointer transition-all duration-300 ${darkMode ? 'border-gray-700' : 'border-white'
-                } ${imageZoomed ? 'scale-150 z-50' : 'group-hover:scale-105'}`}
+              className={`w-full h-56 object-cover rounded-2xl shadow-lg border-2 cursor-pointer transition-all duration-300 ${
+                darkMode ? "border-gray-700" : "border-emerald-200"
+              } ${imageZoomed ? "scale-125 z-40" : "hover:brightness-95"}`}
             />
-            <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-semibold ${darkMode ? 'bg-green-700 text-green-100' : 'bg-green-600 text-white'}`}>
+            <div
+              className={`absolute top-2 right-2 px-2.5 py-1 rounded-full text-xs font-bold shadow-md ${
+                darkMode ? "bg-emerald-700 text-white" : "bg-emerald-600 text-white"
+              }`}
+            >
               {t.readyToAnalyze}
             </div>
-            <div className={`absolute bottom-2 left-2 px-2 py-1 rounded-lg text-xs ${darkMode ? 'bg-gray-800/80 text-gray-200' : 'bg-white/80 text-gray-700'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+            <div
+              className={`absolute bottom-2 left-2 px-2 py-0.5 rounded text-xs backdrop-blur-md ${
+                darkMode ? "bg-gray-900/80 text-gray-200" : "bg-white/80 text-gray-800"
+              }`}
+            >
               🔍 {t.clickToZoom}
             </div>
           </div>
         </div>
       )}
 
-      {/* Image Quality Check */}
+      {/* Pre-Flight Image Quality Card */}
       {preview && (
         <div className="mt-4">
           {checkingQuality && (
-            <div className={`p-4 rounded-xl border-2 flex items-center gap-3 ${darkMode ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
-              <div className={`animate-spin rounded-full h-5 w-5 border-b-2 ${darkMode ? 'border-blue-400' : 'border-blue-600'}`}></div>
-              <span className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>{t.checkingQuality}</span>
+            <div
+              className={`p-3 rounded-xl border flex items-center gap-3 text-xs ${
+                darkMode ? "bg-blue-950/40 border-blue-800 text-blue-300" : "bg-blue-50 border-blue-200 text-blue-800"
+              }`}
+            >
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+              <span>{t.checkingQuality}</span>
             </div>
           )}
 
           {qualityCheck && !checkingQuality && (
-            <div className={`p-4 rounded-xl border-2 ${qualityCheck.quality_score >= 80
-              ? darkMode ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'
-              : qualityCheck.quality_score >= 60
-                ? darkMode ? 'bg-yellow-900/20 border-yellow-700' : 'bg-yellow-50 border-yellow-200'
-                : darkMode ? 'bg-red-900/20 border-red-700' : 'bg-red-50 border-red-200'
-              }`}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  {qualityCheck.quality_score >= 80 ? (
-                    <span className="text-2xl">✅</span>
-                  ) : qualityCheck.quality_score >= 60 ? (
-                    <span className="text-2xl">⚠️</span>
-                  ) : (
-                    <span className="text-2xl">❌</span>
-                  )}
-                  <span className={`font-semibold ${qualityCheck.quality_score >= 80
-                    ? darkMode ? 'text-green-300' : 'text-green-700'
-                    : qualityCheck.quality_score >= 60
-                      ? darkMode ? 'text-yellow-300' : 'text-yellow-700'
-                      : darkMode ? 'text-red-300' : 'text-red-700'
-                    }`}>
-                    {qualityCheck.quality_score >= 80 ? t.qualityGood : t.qualityWarning}
-                  </span>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-bold ${qualityCheck.quality_score >= 80
-                  ? darkMode ? 'bg-green-700 text-green-100' : 'bg-green-600 text-white'
+            <div
+              className={`p-3.5 rounded-xl border text-xs ${
+                qualityCheck.quality_score >= 80
+                  ? darkMode
+                    ? "bg-emerald-950/30 border-emerald-800 text-emerald-300"
+                    : "bg-emerald-50 border-emerald-200 text-emerald-900"
                   : qualityCheck.quality_score >= 60
-                    ? darkMode ? 'bg-yellow-700 text-yellow-100' : 'bg-yellow-600 text-white'
-                    : darkMode ? 'bg-red-700 text-red-100' : 'bg-red-600 text-white'
-                  }`}>
+                  ? darkMode
+                    ? "bg-amber-950/30 border-amber-800 text-amber-300"
+                    : "bg-amber-50 border-amber-200 text-amber-900"
+                  : darkMode
+                  ? "bg-red-950/30 border-red-800 text-red-300"
+                  : "bg-red-50 border-red-200 text-red-900"
+              }`}
+            >
+              <div className="flex items-center justify-between font-semibold">
+                <span>
+                  {qualityCheck.quality_score >= 80
+                    ? `✅ ${t.qualityGood}`
+                    : `⚠️ ${t.qualityWarning}`}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-white/10 font-bold">
                   {t.qualityScore}: {qualityCheck.quality_score}/100
-                </div>
+                </span>
               </div>
 
               {qualityCheck.warnings && qualityCheck.warnings.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  {qualityCheck.warnings.map((warning, index) => (
-                    <div key={index} className={`text-sm flex items-start gap-2 ${qualityCheck.quality_score >= 60
-                      ? darkMode ? 'text-yellow-200' : 'text-yellow-800'
-                      : darkMode ? 'text-red-200' : 'text-red-800'
-                      }`}>
-                      <span className="flex-shrink-0 mt-0.5">•</span>
-                      <span>{warning}</span>
-                    </div>
+                <ul className="mt-2 space-y-1 opacity-90">
+                  {qualityCheck.warnings.map((w, idx) => (
+                    <li key={idx}>• {w}</li>
                   ))}
-                </div>
-              )}
-
-              {qualityCheck.suggestions && qualityCheck.suggestions.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  {qualityCheck.suggestions.map((suggestion, index) => (
-                    <div key={index} className={`text-xs flex items-start gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      <span className="flex-shrink-0 mt-0.5">💡</span>
-                      <span>{suggestion}</span>
-                    </div>
-                  ))}
-                </div>
+                </ul>
               )}
             </div>
           )}
@@ -770,188 +872,315 @@ function UploadSection({ uiLanguage, darkMode, predictions, setPredictions }) {
       )}
 
       {/* Predict Button */}
-      <button
-        onClick={predictDisease}
-        disabled={loading || !file}
-        className="mt-4 sm:mt-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
-      >
-        {loading ? (
-          <>
-            <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-            {t.analyzing}
-          </>
-        ) : (
-          <>
-            <Search size={20} /> {t.predictButton}
-          </>
-        )}
-      </button>
+      {preview && (
+        <button
+          onClick={predictDisease}
+          disabled={loading || !file}
+          className="mt-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-3.5 px-6 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              <span>{t.analyzing}</span>
+            </>
+          ) : (
+            <>
+              <Search size={18} />
+              <span>{t.predictButton}</span>
+            </>
+          )}
+        </button>
+      )}
 
       {/* Error Message */}
       {error && (
-        <div className={`mt-4 sm:mt-6 border-2 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-start gap-2 sm:gap-3 ${darkMode ? 'bg-red-900/20 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-700'}`}>
-          <AlertCircle size={24} className="flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm sm:text-base">{t.errorTitle}</p>
-            <p className="text-xs sm:text-sm break-words">{error}</p>
+        <div
+          className={`mt-4 p-3.5 rounded-xl border flex items-start gap-2 text-xs sm:text-sm ${
+            darkMode ? "bg-red-950/40 border-red-800 text-red-300" : "bg-red-50 border-red-200 text-red-700"
+          }`}
+        >
+          <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-bold">{t.errorTitle}</p>
+            <p>{error}</p>
           </div>
         </div>
       )}
 
-      {/* Predictions */}
+      {/* Predictions and Results Section */}
       {predictions.length > 0 && (
-        <div ref={resultsRef} className="mt-4 sm:mt-6 md:mt-8 space-y-4 sm:space-y-6">
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <h3 className={`text-lg sm:text-xl md:text-2xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                {t.predictionsTitle}
+        <div ref={resultsRef} className="mt-8 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-800 gap-2">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg sm:text-xl font-extrabold flex items-center gap-2">
+                <Trophy size={20} className="text-amber-500" /> {t.predictionsTitle}
               </h3>
-              <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${darkMode ? 'bg-green-700 text-green-100' : 'bg-green-100 text-green-700'}`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  darkMode ? "bg-emerald-900/60 text-emerald-300" : "bg-emerald-100 text-emerald-800"
+                }`}
+              >
                 {predictions.length} {t.detected}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {predictions.map((pred, index) => {
-                const severity = getSeverity(pred.confidence)
-                return (
-                  <div
-                    key={index}
-                    className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:scale-105 ${darkMode
-                      ? 'bg-gradient-to-br from-gray-700 to-gray-800 border-2 border-gray-600'
-                      : 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200'
-                      } hover:shadow-xl`}
-                  >
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                      <div className="flex items-center gap-2">
-                        {index === 0 ? (
-                          <Trophy size={28} className="flex-shrink-0 text-yellow-500" />
-                        ) : index === 1 ? (
-                          <Medal size={28} className="flex-shrink-0 text-gray-400" />
-                        ) : index === 2 ? (
-                          <Medal size={28} className="flex-shrink-0 text-amber-600" />
-                        ) : (
-                          <Medal size={28} className="flex-shrink-0 text-blue-400" />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <span className={`font-semibold text-xs sm:text-sm md:text-base block truncate ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                            {pred.label.replace(/_/g, " ")}
-                          </span>
-                          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            {t.severity}: <span className={`font-semibold text-${severity.color}-500`}>{severity.level}</span>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-center">
-                      <CircularProgress
-                        percentage={pred.confidence * 100}
-                        size={window.innerWidth < 640 ? 80 : 100}
-                        strokeWidth={window.innerWidth < 640 ? 6 : 8}
-                        color={severity.color}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            {/* Ask AI CTA */}
+            {onAskAi && (
+              <button
+                onClick={() => onAskAi(predictions, detectedDiseases)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 ${
+                  darkMode
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-700 text-white hover:from-emerald-500 hover:to-teal-600 border border-emerald-500/50"
+                    : "bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 shadow-emerald-200"
+                }`}
+                title={t.askAboutResult || "Ask AI About This Diagnosis"}
+              >
+                <Bot size={15} />
+                <span>{t.askAboutResult || "Ask AI About This Diagnosis"}</span>
+              </button>
+            )}
           </div>
 
-          {/* AI Advice */}
-          {advice && (
-            <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border-2 transition-all ${darkMode ? 'bg-gradient-to-br from-blue-900/50 to-indigo-900/50 border-blue-700' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'}`}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-3">
-                <div className="flex items-center gap-2">
-                  <Lightbulb size={24} className={darkMode ? 'text-yellow-400' : 'text-yellow-600'} />
-                  <h3 className={`text-lg sm:text-xl md:text-2xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                    {t.adviceTitle}
+          {/* Predictions Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {predictions.map((pred, index) => {
+              const severity = getSeverity(pred.confidence)
+              return (
+                <div
+                  key={index}
+                  className={`rounded-2xl p-4 transition-all duration-200 border ${
+                    darkMode
+                      ? "bg-gray-800/80 border-gray-700 hover:border-emerald-500"
+                      : "bg-gradient-to-br from-white to-emerald-50/30 border-emerald-200 hover:shadow-md"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {index === 0 ? (
+                        <Medal size={22} className="text-amber-500 flex-shrink-0" />
+                      ) : (
+                        <Medal size={22} className="text-gray-400 flex-shrink-0" />
+                      )}
+                      <div>
+                        <h4 className="font-bold text-sm leading-tight block">
+                          {pred.label.replace(/___/g, " - ").replace(/_/g, " ")}
+                        </h4>
+                        <span className="text-xs text-gray-400">
+                          {t.severity}: <strong className={severity.colorClass}>{severity.level}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center py-1">
+                    <CircularProgress
+                      percentage={pred.confidence * 100}
+                      strokeColor={severity.stroke}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Multi-Disease Grad-CAM Localization Section */}
+          {(visualizations.length > 0 || combinedVisualization) && (
+            <div
+              className={`rounded-2xl p-5 border shadow-md transition-all ${
+                darkMode
+                  ? "bg-gray-800/60 border-purple-900/50"
+                  : "bg-gradient-to-br from-purple-50/50 to-indigo-50/30 border-purple-200"
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
+                    🎯 {t.diseaseLocalization}
                   </h3>
+                  <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                    Visual attention overlays generated from DenseNet121 deep features
+                  </p>
                 </div>
 
-                {/* Language Translator */}
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <span className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.translateTo}</span>
-                  <select
-                    value={adviceLanguage}
-                    onChange={(e) => translateAdvice(e.target.value)}
-                    disabled={translating}
-                    className={`p-1.5 sm:p-2 border-2 rounded-lg focus:outline-none transition-all text-xs sm:text-sm disabled:opacity-50 flex-1 sm:flex-initial ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:border-blue-400' : 'bg-white border-blue-300 text-gray-900 focus:border-blue-500'}`}
-                  >
-                    {languages.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
-                        {lang.flag} {lang.name}
-                      </option>
-                    ))}
-                  </select>
-                  {translating && (
-                    <div className={`animate-spin rounded-full h-4 w-4 border-b-2 ${darkMode ? 'border-blue-400' : 'border-blue-600'}`}></div>
-                  )}
-                </div>
+                {/* View Switcher Toggle */}
+                {combinedVisualization && visualizations.length > 0 && (
+                  <div className="inline-flex rounded-xl p-1 bg-black/10 dark:bg-white/10 self-start sm:self-auto">
+                    <button
+                      onClick={() => setShowCombined(true)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                        showCombined
+                          ? "bg-white dark:bg-gray-900 shadow-sm text-purple-700 dark:text-purple-300"
+                          : "text-gray-500 hover:text-gray-800 dark:text-gray-400"
+                      }`}
+                    >
+                      <Layers size={14} />
+                      <span>{t.showCombined}</span>
+                    </button>
+                    <button
+                      onClick={() => setShowCombined(false)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                        !showCombined
+                          ? "bg-white dark:bg-gray-900 shadow-sm text-purple-700 dark:text-purple-300"
+                          : "text-gray-500 hover:text-gray-800 dark:text-gray-400"
+                      }`}
+                    >
+                      <LayoutGrid size={14} />
+                      <span>{t.showIndividual}</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {translating ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${darkMode ? 'border-blue-400' : 'border-blue-600'}`}></div>
-                  <span className={`ml-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.translating}</span>
-                </div>
-              ) : (
-                <div className="prose prose-sm md:prose-base max-w-none">
-                  <div className={darkMode ? 'text-gray-200' : 'text-gray-700'}>
-                    {renderAdvice(advice)}
+              {/* Combined Multi-Disease View */}
+              {showCombined && combinedVisualization && (
+                <div className="space-y-4">
+                  <div className="relative rounded-xl overflow-hidden border border-purple-300 dark:border-purple-800 bg-black/5 dark:bg-black/40">
+                    <img
+                      src={combinedVisualization}
+                      alt="Combined multi-disease localization"
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full max-h-96 object-contain mx-auto"
+                    />
+                  </div>
+
+                  {/* Multi-Disease Color Legend */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2">
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                      Color Legend:
+                    </span>
+                    {visualizations.map((viz, idx) => (
+                      <div
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white dark:bg-gray-800 border shadow-sm"
+                        style={{ borderColor: viz.color }}
+                      >
+                        <span
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: viz.color }}
+                        ></span>
+                        <span className="capitalize">{viz.disease.replace(/___/g, " ").replace(/_/g, " ")}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {detectedDiseases.length > 0 && (
-                <div className={`mt-6 pt-4 border-t ${darkMode ? 'border-blue-700' : 'border-blue-200'}`}>
-                  <p className={`text-sm flex items-start gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    <strong className="flex-shrink-0">🔍 {t.detectedLabel}</strong>
-                    <span>{detectedDiseases.join(", ").replace(/_/g, " ")}</span>
-                  </p>
+              {/* Individual Disease Breakdown Cards */}
+              {(!showCombined || !combinedVisualization) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {visualizations.map((viz, index) => (
+                    <div
+                      key={index}
+                      className={`p-3.5 rounded-xl border-2 transition-all ${
+                        darkMode ? "bg-gray-800" : "bg-white shadow-sm"
+                      }`}
+                      style={{ borderColor: viz.color }}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className="w-3.5 h-3.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: viz.color }}
+                        ></span>
+                        <h4 className="font-bold text-xs sm:text-sm truncate">
+                          {viz.disease.replace(/___/g, " - ").replace(/_/g, " ")}
+                        </h4>
+                      </div>
+
+                      <img
+                        src={viz.image}
+                        alt={`${viz.disease.replace(/___/g, " - ").replace(/_/g, " ")} Grad-CAM`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-48 object-cover rounded-lg mb-2 border"
+                      />
+
+                      <div
+                        className="text-xs font-bold py-1 px-2 rounded text-center capitalize"
+                        style={{
+                          backgroundColor: `${viz.color}20`,
+                          color: viz.color,
+                        }}
+                      >
+                        {t.highlighted} {viz.color}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           )}
 
-          {/* Disease Localization Section */}
-          {visualizations.length > 0 && (
-            <div className={`mt-6 sm:mt-8 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border-2 transition-all ${darkMode ? 'bg-gradient-to-br from-purple-900/50 to-indigo-900/50 border-purple-700' : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'}`}>
-              <h3 className={`text-lg sm:text-xl md:text-2xl font-bold mb-4 flex items-center gap-2 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                🎯 {t.diseaseLocalization || translations.en.diseaseLocalization || "Disease Localization"}
-              </h3>
+          {/* Farmer Advisory Section */}
+          {advice && (
+            <div
+              className={`rounded-2xl p-5 border shadow-md transition-all ${
+                darkMode
+                  ? "bg-gray-800/80 border-emerald-900/50"
+                  : "bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-emerald-200"
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div className="flex items-center gap-2">
+                  <Lightbulb size={22} className="text-amber-500" />
+                  <h3 className="text-base sm:text-lg font-bold">{t.adviceTitle}</h3>
+                </div>
 
-              {/* Combined Visualization Toggle */}
-              <div className="mb-6">
-                <span className={`text-base font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                  {visualizations.length} {t.diseasesDetected || translations.en.diseasesDetected || "diseases detected"}
-                </span>
-              </div>
+                {/* Multilingual Translation Switcher & Ask AI CTA */}
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                  {onAskAi && (
+                    <button
+                      onClick={() => onAskAi(predictions, detectedDiseases)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 ${
+                        darkMode
+                          ? "bg-gray-700 hover:bg-emerald-800 text-emerald-300"
+                          : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      }`}
+                      title={t.askAboutResult || "Ask AI Assistant"}
+                    >
+                      <Bot size={14} />
+                      <span>{t.chatButton || "Ask AI Assistant"}</span>
+                    </button>
+                  )}
 
-              {/* Individual Visualizations */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {visualizations.map((viz, index) => (
-                  <div key={index} className={`p-4 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md border-2`} style={{ borderColor: viz.color }}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: viz.color }}></div>
-                      <h4 className={`text-md font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                        {viz.disease.replace(/_/g, " ")}
-                      </h4>
-                    </div>
-                    <img
-                      src={viz.image}
-                      alt={`${viz.disease} localization`}
-                      className="w-full rounded-lg shadow-lg mb-2"
-                    />
-                    <div className={`text-xs px-2 py-1 rounded text-center font-semibold`} style={{
-                      backgroundColor: `${viz.color}22`,
-                      color: viz.color
-                    }}>
-                      {t.highlighted || translations.en.highlighted || "Highlighted in"} {viz.color.toUpperCase()}
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500 font-medium">
+                      {t.translateTo}
+                    </span>
+                    <select
+                      value={adviceLanguage}
+                      onChange={(e) => translateAdvice(e.target.value)}
+                      disabled={translating}
+                      className={`p-1.5 border rounded-lg text-xs font-semibold focus:outline-none transition-all ${
+                        darkMode
+                          ? "bg-gray-800 border-gray-700 text-gray-100"
+                          : "bg-white border-emerald-300 text-gray-900"
+                      }`}
+                    >
+                      {languages.map((lang) => (
+                        <option key={lang.code} value={lang.code}>
+                          {lang.flag} {lang.name}
+                        </option>
+                      ))}
+                    </select>
+                    {translating && (
+                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-emerald-500 border-t-transparent"></div>
+                    )}
                   </div>
-                ))}
+                </div>
               </div>
+
+              {translating ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent"></div>
+                  <span className="ml-2 text-xs font-semibold">{t.translating}</span>
+                </div>
+              ) : (
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  {renderAdvice(advice)}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: leafsense-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - LEAFSENSE_MODE=full
+      - HF_MODEL_REPO_ID=adb043/agriscan_models
+      - SARVAM_API_KEY=${SARVAM_API_KEY:-}
+    volumes:
+      - ./backend/models:/app/models
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: leafsense-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Model files (too large for GitHub)
+*.pth
+*.pt
+*.h5
+*.pkl
+
+# Environment variables
+.env
+*.env
+
+# Dataset (too large for GitHub)
+dataset/
+
+# Node modules
+node_modules/
+
+# Frontend build
+frontend/dist/
+frontend/build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

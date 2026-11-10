@@ -9,32 +9,33 @@
 [![PyTorch](https://img.shields.io/badge/Deep%20Learning-PyTorch%202.x-ee4c2c.svg)](https://pytorch.org/)
 [![IBM watsonx.ai](https://img.shields.io/badge/LLM-IBM%20Granite%204-1f70c1.svg)](https://www.ibm.com/products/watsonx-ai)
 [![ChromaDB](https://img.shields.io/badge/Vector%20DB-ChromaDB-fc521f.svg)](https://www.trychroma.com/)
-[![Test Suite](https://img.shields.io/badge/Tests-69%20Passed%20%28100%25%29-brightgreen.svg)](#12-testing)
+[![Test Suite](https://img.shields.io/badge/Tests-69%20Passed%20%28100%25%29-brightgreen.svg)](#13-testing)
 
 ---
 
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
-2. [Key Features](#2-key-features)
-3. [Screenshots and Demo](#3-screenshots-and-demo)
-4. [System Architecture](#4-system-architecture)
-5. [Technology Stack](#5-technology-stack)
-6. [Supported Crops and Disease Classes](#6-supported-crops-and-disease-classes)
-7. [Installation and Local Setup](#7-installation-and-local-setup)
-8. [Environment Variables and IBM watsonx.ai Setup](#8-environment-variables-and-ibm-watsonxai-setup)
-9. [Agriculture Knowledge Base Setup](#9-agriculture-knowledge-base-setup)
-10. [API Documentation](#10-api-documentation)
-11. [Project Folder Structure](#11-project-folder-structure)
-12. [Testing](#12-testing)
-13. [Model Training and Dataset Transparency](#13-model-training-and-dataset-transparency)
-14. [Deployment Guide](#14-deployment-guide)
-15. [Responsible AI and Limitations](#15-responsible-ai-and-limitations)
-16. [Roadmap](#16-roadmap)
-17. [Contributing](#17-contributing)
-18. [Security](#18-security)
-19. [License and Credits](#19-license-and-credits)
-20. [Contact and Acknowledgements](#20-contact-and-acknowledgements)
+2. [IBM Technology Integration & Alignment](#2-ibm-technology-integration--alignment)
+3. [Key Features](#3-key-features)
+4. [Application Screenshots](#application-screenshots)
+5. [System Architecture](#5-system-architecture)
+6. [Technology Stack](#6-technology-stack)
+7. [Supported Crops and Disease Classes](#7-supported-crops-and-disease-classes)
+8. [Installation and Local Setup](#8-installation-and-local-setup)
+9. [Environment Variables and IBM watsonx.ai Setup](#9-environment-variables-and-ibm-watsonxai-setup)
+10. [Agriculture Knowledge Base Setup](#10-agriculture-knowledge-base-setup)
+11. [API Documentation](#11-api-documentation)
+12. [Project Folder Structure](#12-project-folder-structure)
+13. [Testing](#13-testing)
+14. [Model Training and Dataset Transparency](#14-model-training-and-dataset-transparency)
+15. [Deployment Guide](#15-deployment-guide)
+16. [Responsible AI and Limitations](#16-responsible-ai-and-limitations)
+17. [Roadmap](#17-roadmap)
+18. [Contributing](#18-contributing)
+19. [Security](#19-security)
+20. [License and Credits](#20-license-and-credits)
+21. [Contact and Acknowledgements](#21-contact-and-acknowledgements)
 
 ---
 
@@ -58,7 +59,59 @@ Plant diseases cause substantial annual crop yield losses globally, severely thr
 
 ---
 
-## 2. Key Features
+## 2. IBM Technology Integration & Alignment
+
+LeafSense integrates **IBM Cloud Lite and IBM watsonx.ai** to deliver an AI-powered smart farming advisory experience. The project uses **IBM Granite** as its generative AI foundation to help farmers understand crop-related problems and receive contextual agricultural guidance.
+
+### IBM Technologies Used
+
+| IBM Technology | Role in LeafSense | Implementation Details |
+|---|---|---|
+| **IBM Cloud Lite** | Cloud platform and access to IBM watsonx.ai services | Hosts project workspace, API authentication, and IAM resource management |
+| **IBM watsonx.ai** | AI model access and inference runtime | Official Python SDK (`ibm-watsonx-ai`) managing foundation model invocations |
+| **IBM Granite 4 (`ibm/granite-4-h-small`)** | Conversational smart farming assistant | Generates context-aware agronomic advisory, differential analysis, and follow-ups |
+| **Granite Embedding (`ibm/granite-embedding-278m-multilingual`)** | Converts agricultural knowledge into embeddings for semantic retrieval | Generates dense multilingual vectors for documents stored in ChromaDB |
+
+### Retrieval-Augmented Generation (RAG)
+LeafSense uses a Retrieval-Augmented Generation architecture to make farming advice more context-aware and evidence-based:
+1. Agricultural documents (extension bulletins, pathology guides) are ingested into the knowledge base.
+2. Documents are divided into smaller text chunks with metadata tracking (source, page).
+3. **IBM Granite Embedding** generates vector representations.
+4. **ChromaDB** stores the vectors for semantic retrieval.
+5. Relevant agricultural information is retrieved when a farmer asks a question.
+6. **IBM Granite** generates a response using the available context.
+
+The assistant provides relevant source references when supporting documents are available. If sufficient evidence is unavailable, it communicates uncertainty instead of presenting unsupported advice as fact.
+
+### Smart Farming AI Agent
+The AI agent combines:
+- Plant disease classification results from the vision ensemble.
+- Farmer-provided crop and location context.
+- Crop growth stage and symptom information.
+- Retrieved agricultural knowledge from ChromaDB.
+- IBM Granite-powered conversational responses.
+
+The goal is to make agricultural information more accessible through an interactive assistant that can understand follow-up questions and provide contextual guidance.
+
+### Responsible AI and Farmer Safety
+- **Avoids unconfirmed diagnoses:** Treats image predictions as preliminary assistive indications, not confirmed diagnoses.
+- **Distinguishes evidence:** Differentiates retrieved knowledge base citations from general educational guidance.
+- **Zero chemical hallucination:** Does not invent pesticide dosages, market prices, or weather conditions.
+- **Expert verification:** Encourages farmers to consult qualified agricultural experts or local **Krishi Vigyan Kendras (KVKs)** for important treatment decisions.
+- **Backend security:** Keeps IBM credentials on the backend using environment variables.
+
+> **Important:** AI-generated farming advice is informational and should not replace professional agricultural guidance or approved chemical labels.
+
+### Internship Problem Statement Alignment
+**Problem Statement No. 9: AI Agent for Smart Farming Advice**
+
+LeafSense addresses this problem by combining deep learning-based plant disease detection, IBM Granite-powered conversational AI, and RAG-based agricultural knowledge retrieval into a unified smart farming assistant. The solution aims to help farmers access understandable, contextual, and evidence-supported agricultural information through a user-friendly interface.
+
+*For complete implementation specifications, see [docs/IBM_TECHNOLOGY_INTEGRATION.md](docs/IBM_TECHNOLOGY_INTEGRATION.md).*
+
+---
+
+## 3. Key Features
 
 ### A. AI Plant Disease Detection
 - **17 Disease Classes across 5 Crops:** Supports Apple, Corn (Maize), Grape, Potato, and Tomato.
@@ -95,23 +148,31 @@ Plant diseases cause substantial annual crop yield losses globally, severely thr
 
 ---
 
-## 3. Screenshots and Demo
+## Application Screenshots
 
-> **Note:** To maintain strict authenticity, no simulated or fabricated screenshots are committed to the repository. The paths below reflect the visual capture layout.
+### 1. LeafSense Dashboard
 
-| Interface View | Screenshot Placeholder |
-|:---|:---|
-| **Main Diagnostic Dashboard** | `docs/images/dashboard.png` *(Capture main foliage upload & camera interface)* |
-| **Multi-Disease Diagnosis Results** | `docs/images/diagnosis.png` *(Capture confidence scores & quality check)* |
-| **Color-Coded Grad-CAM Overlays** | `docs/images/gradcam.png` *(Capture individual & composite heatmaps)* |
-| **Interactive Assistant & RAG Citations** | `docs/images/ai-assistant.png` *(Capture reasoning accordion & source citations)* |
-| **Bilingual Hindi Consultation** | `docs/images/hindi-chat.png` *(Capture multi-turn consultation in Hindi)* |
+![LeafSense Dashboard](docs/screenshots/leafsense-dashboard.png)
 
-*For screenshot capturing guidelines and recommended dimensions, see [docs/images/README.md](docs/images/README.md).*
+The main LeafSense web interface featuring the responsive navigation header, foliage image upload module with real-time pre-flight image quality validation (sharpness, contrast, and blur detection), quick action buttons for camera capture and gallery upload, and multi-language selection.
+
+### 2. Plant Disease Detection & Results
+
+![Disease Detection Results](docs/screenshots/disease-detection-results.png)
+
+Multi-model deep learning pathology diagnosis displaying the detected condition (*Corn (maize) - Cercospora leaf spot / Gray leaf spot*), severity rating, calibrated ensemble confidence score, and immediate Farmer Treatment Advice including cultural management, quarantine protocols, and irrigation practices.
+
+> **Responsible AI Note:** Model predictions are preliminary visual indicators and should not be treated as confirmed laboratory diagnoses. Farmers should verify symptoms and consult qualified agricultural experts before taking treatment decisions.
+
+### 3. IBM Granite 4 AI Farming Assistant
+
+![IBM Granite AI Farming Assistant](docs/screenshots/ibm-granite-ai-assistant.png)
+
+Interactive conversational smart farming assistant powered by IBM watsonx.ai and the **IBM Granite 4** instruct model (`ibm/granite-4-h-small`). The assistant seamlessly ingests active leaf diagnosis context, tracks progressive farmer profiles across multi-turn sessions, explains differential lookalike symptoms, and provides grounded, safe agricultural recommendations.
 
 ---
 
-## 4. System Architecture
+## 5. System Architecture
 
 ```mermaid
 flowchart TD
@@ -174,7 +235,7 @@ flowchart TD
 
 ---
 
-## 5. Technology Stack
+## 6. Technology Stack
 
 ### Frontend
 | Component | Technology | Version / Specification |
@@ -214,7 +275,7 @@ flowchart TD
 
 ---
 
-## 6. Supported Crops and Disease Classes
+## 7. Supported Crops and Disease Classes
 
 LeafSense identifies **17 distinct plant disease classes** across **5 key crops**:
 
@@ -231,7 +292,7 @@ LeafSense identifies **17 distinct plant disease classes** across **5 key crops*
 
 ---
 
-## 7. Installation and Local Setup
+## 8. Installation and Local Setup
 
 ### Prerequisites
 - **Operating System:** Linux (Ubuntu 20.04+ recommended), macOS, or Windows (WSL2).
@@ -299,7 +360,7 @@ cd Leafsense
 
 ---
 
-## 8. Environment Variables and IBM watsonx.ai Setup
+## 9. Environment Variables and IBM watsonx.ai Setup
 
 All backend secrets reside in `backend/.env`. A template is provided in `backend/.env.example`:
 
@@ -327,7 +388,7 @@ PORT=8000
 
 ---
 
-## 9. Agriculture Knowledge Base Setup
+## 10. Agriculture Knowledge Base Setup
 
 LeafSense uses **ChromaDB** to index agricultural reference literature.
 
@@ -351,7 +412,7 @@ LeafSense uses **ChromaDB** to index agricultural reference literature.
 
 ---
 
-## 10. API Documentation
+## 11. API Documentation
 
 | Method | Endpoint | Purpose | Request Payload | Response Overview |
 |:---:|:---|:---|:---|:---|
@@ -371,7 +432,7 @@ LeafSense uses **ChromaDB** to index agricultural reference literature.
 
 ---
 
-## 11. Project Folder Structure
+## 12. Project Folder Structure
 
 ```
 LeafSense/
@@ -427,7 +488,7 @@ LeafSense/
 
 ---
 
-## 12. Testing
+## 13. Testing
 
 LeafSense maintains an automated test suite verifying computer vision, vector retrieval, IBM Granite foundation model reasoning, and safety guardrails.
 
@@ -462,7 +523,7 @@ npm run build   # Verified: Vite built in ~600ms (dist/ assets generated)
 
 ---
 
-## 13. Model Training and Dataset Transparency
+## 14. Model Training and Dataset Transparency
 
 - **Vision Backbones:** DenseNet121, GhostNetV2, ResNet50, and AgriFusionNet utilize ImageNet-pretrained feature extractors adapted with custom multi-label linear heads.
 - **Lineage:** Model training artifacts derive from public agricultural research benchmarks including **PlantVillage** and **PlantDoc**.
@@ -471,7 +532,7 @@ npm run build   # Verified: Vite built in ~600ms (dist/ assets generated)
 
 ---
 
-## 14. Deployment Guide
+## 15. Deployment Guide
 
 - **Frontend:** Optimized for static hosting on **Vercel**, **Cloudflare Pages**, or **Netlify**.
 - **Backend:** Requires a **persistent container hosting service** (Render, Fly.io, Railway, AWS ECS, or IBM Cloud Code Engine) to support PyTorch memory footprint and persistent ChromaDB vector storage.
@@ -481,7 +542,7 @@ npm run build   # Verified: Vite built in ~600ms (dist/ assets generated)
 
 ---
 
-## 15. Responsible AI and Limitations
+## 16. Responsible AI and Limitations
 
 1. **Assistive Nature:** LeafSense provides preliminary screening and educational insights. It does not replace on-site agronomical inspection or laboratory culture tests.
 2. **Grad-CAM Heatmap Interpretation:** Heatmaps localize regions influencing the neural network; they are visual correlation tools and do not establish biological pathogen causation.
@@ -489,7 +550,7 @@ npm run build   # Verified: Vite built in ~600ms (dist/ assets generated)
 
 ---
 
-## 16. Roadmap
+## 17. Roadmap
 
 ### Completed Features (Verified)
 - [x] 4-Model multi-label deep learning ensemble (ResNet50, DenseNet121, GhostNetV2, AgriFusionNet).
@@ -510,7 +571,7 @@ npm run build   # Verified: Vite built in ~600ms (dist/ assets generated)
 
 ---
 
-## 17. Contributing
+## 18. Contributing
 
 We welcome community contributions from agronomists, AI researchers, and full-stack developers:
 1. **Fork** the repository on GitHub.
@@ -522,7 +583,7 @@ We welcome community contributions from agronomists, AI researchers, and full-st
 
 ---
 
-## 18. Security
+## 19. Security
 
 - **Credential Separation:** Never commit `.env` or expose API keys.
 - **Log Masking:** Automated token redaction strips secrets from exception logs.
@@ -532,7 +593,7 @@ We welcome community contributions from agronomists, AI researchers, and full-st
 
 ---
 
-## 19. License and Credits
+## 20. License and Credits
 
 ### License Notice
 > **Notice for Repository Maintainer:** A formal open-source license file (`LICENSE`) is not currently present in this repository. Maintainers are advised to choose an appropriate open-source license (such as the [MIT License](https://opensource.org/licenses/MIT) or [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)) and add it to the root directory.
@@ -546,7 +607,7 @@ We welcome community contributions from agronomists, AI researchers, and full-st
 
 ---
 
-## 20. Contact and Acknowledgements
+## 21. Contact and Acknowledgements
 
 - **Repository:** [https://github.com/RudraMandloi834/Leafsense](https://github.com/RudraMandloi834/Leafsense)
 - **Maintainer:** Rudra Mandloi ([@RudraMandloi834](https://github.com/RudraMandloi834))
